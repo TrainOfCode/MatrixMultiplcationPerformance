@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<chrono>
 
+#include "../array2d/array2d.h"
 
 
 void MMulVec(const std::vector<std::vector<double>> a, const std::vector<std::vector<double>> b,
@@ -17,12 +18,16 @@ void printNestedArray(double **inp, int SIZE);
 void printNestedVector(std::vector<std::vector<double>> inp);
 void printNonNestedArray(const double *inp, int SIZE);
 
+template <class T>
+void printArray2d(const array2d<T> A, int SIZE);
+
 int main(int argc, char* argv[]) {
 
   srand(500);
 
-  int SIZE = 2;
-  // int ROUNDS = 1000;
+  int SIZE = 50;
+  int ROUNDS = 1;
+
 
   std::vector<std::vector<double>> a;
   std::vector<std::vector<double>> b;
@@ -38,6 +43,10 @@ int main(int argc, char* argv[]) {
   double B1[SIZE * SIZE];
   double C1[SIZE * SIZE];
 
+  array2d<double> A2d(SIZE, SIZE);
+  array2d<double> B2d(SIZE, SIZE);
+  array2d<double> C2d(SIZE, SIZE);
+
 
   for (int i = 0; i < SIZE; i++) {
     A[i] = new double[SIZE];
@@ -51,20 +60,24 @@ int main(int argc, char* argv[]) {
     std::vector<double> newRa;
     std::vector<double> newRb;
     for(int j = 0; j < SIZE; j++) {
-      newRa.push_back(rand() % 5 + 1);
-      newRb.push_back(rand() % 5 + 1);
-      A[i][j] = count;//rand() % 5 + 1;
-      B[i][j] = countB;//rand() % 5 + 1;
+      double x = rand() % 5 + 1;
+      double y = rand() % 5 + 1;
+      newRa.push_back(x);
+      newRb.push_back(y);
+      A[i][j] = x;//rand() % 5 + 1;
+      B[i][j] = y;//rand() % 5 + 1;
       A1[(i * SIZE) + j] = A[i][j];//rand() % 5 + 1;
       B1[(i * SIZE) + j] = B[i][j];//rand() % 5 + 1;
       C1[(i * SIZE) + j] = 0;
+      A2d(i, j, A[i][j]);
+      B2d(i, j, B[i][j]);
       count++;
       countB++;
     }
     a.push_back(newRa);
     b.push_back(newRb);
   }
-  /*
+
   std::vector<std::vector<double>> c( SIZE , std::vector<double> (SIZE, 0));
 
 
@@ -90,30 +103,68 @@ int main(int argc, char* argv[]) {
 
   std::cout << "Time taken by array: " << durationAr*1e-6 << " seconds" << std::endl;
 
+  /*
+  auto startRec = std::chrono::high_resolution_clock::now();
+  for(int i = 0; i < ROUNDS; i++) {
+    MMulArrRec(A1, B1, C1, SIZE, SIZE, SIZE);
+  }
+  auto stopRec = std::chrono::high_resolution_clock::now();
+
+  duration = std::chrono::duration_cast<std::chrono::microseconds>(stopRec- startRec);
+  double durationRec = duration.count();
+
+  std::cout << "Time taken by array: " << durationRec*1e-6 << " seconds" << std::endl;
   */
+  auto startRec = std::chrono::high_resolution_clock::now();
+  for(int i = 0; i < ROUNDS; i++) {
+    A2d.mult(B2d, C2d);
+  }
+  auto stopRec = std::chrono::high_resolution_clock::now();
 
-  std::cout << "Array a1" << std::endl;
-  printNonNestedArray(A1, SIZE);
+  duration = std::chrono::duration_cast<std::chrono::microseconds>(stopRec- startRec);
+  double durationRec = duration.count();
 
-  std::cout << "Array b1" << std::endl;
-  printNonNestedArray(B1, SIZE);
+  std::cout << "Time taken by array2d: " << durationRec*1e-6 << " seconds" << std::endl;
+
+  // std::cout << "Array a1" << std::endl;
+  // printNonNestedArray(A1, SIZE);
+  //
+  // std::cout << "Array b1" << std::endl;
+  // printNonNestedArray(B1, SIZE);
+
+  // printNestedVector(c);
+  // printNestedArray(C, SIZE);
+  // printArray2d(C2d, SIZE);
 
 
+  /*
   std::cout << "Array A" << std::endl;
   printNestedArray(A, SIZE);
 
   std::cout << "Array A" << std::endl;
   printNestedArray(B, SIZE);
 
-  MMulArrRec(A1, B1, C1, SIZE, SIZE, SIZE);
-
-  std::cout << "Result" << std::endl;
-  printNonNestedArray(C1, SIZE);
+  // MMulArrRec(A1, B1, C1, SIZE, SIZE, SIZE);
+  //
+  // std::cout << "Result" << std::endl;
+  // printNonNestedArray(C1, SIZE);
 
   std::cout << "To check" << std::endl;
   MMulArr(A, B, C, SIZE, SIZE, SIZE);
   printNestedArray(C, SIZE);
 
+
+
+  std::cout << "Array A2d" << std::endl;
+  printArray2d(A2d, SIZE);
+
+  std::cout << "Array B2d" << std::endl;
+  printArray2d(B2d, SIZE);
+
+  array2d<double> C2d = A2d * B2d;
+  std::cout << "Array C2d" << std::endl;
+  printArray2d(C2d, SIZE);
+  */
 
   return 0;
 }
@@ -180,10 +231,10 @@ void addMatMulRec(const double *A, const double *B, double *C, int M, int N, int
     addMatMulRec(A+N2, B+K2+(N2*fdB), C, M2, N-N2, K-K2, fdA, fdB, fdC);
 
     addMatMulRec(A+(M2*fdA), B, C+(M2*fdC), M-M2, N2, K2, fdA, fdB, fdC);
-    addMatMulRec(A+(M2*fdA)+N2, B+(N2*fdB), C+(M2*fdC), M-M2, N-N2, K2, fdA, fdB, fdC);
+    //addMatMulRec(A+(M2*fdA)+N2, B+(N2*fdB), C+(M2*fdC), M-M2, N-N2, K2, fdA, fdB, fdC);
 
     addMatMulRec(A+(M2*fdA), B+K2, C+(M2*fdC)+K2, M-M2, N2, K-K2, fdA, fdB, fdC);
-    addMatMulRec(A+(M2*fdA)+N2, B+K2+(N2*fdB), C+(M2*fdC), M-M2, N-N2, K-K2, fdA, fdB, fdC);
+    //addMatMulRec(A+(M2*fdA)+N2, B+K2+(N2*fdB), C+(M2*fdC), M-M2, N-N2, K-K2, fdA, fdB, fdC);
   }
 }
 
@@ -218,6 +269,18 @@ void printNonNestedArray(const double *inp, int SIZE) {
     std::cout << "[ ";
     for(int j = 0; j < SIZE; j++) {
       std::cout << inp[(i * SIZE) + j] << ", ";
+    }
+    std::cout << " ]";
+    std::cout << std::endl;
+  }
+}
+
+template <class T>
+void printArray2d(const array2d<T> A, int SIZE) {
+  for(int i = 0; i < SIZE; i++) {
+    std::cout << "[ ";
+    for(int j = 0; j < SIZE; j++) {
+      std::cout << A(i, j) << ", ";
     }
     std::cout << " ]";
     std::cout << std::endl;
