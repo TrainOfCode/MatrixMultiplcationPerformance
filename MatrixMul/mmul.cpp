@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 
   srand(500);
 
-  int SIZE = 50;
+  int SIZE = 2;
   int ROUNDS = 1;
 
 
@@ -132,9 +132,9 @@ int main(int argc, char* argv[]) {
   // std::cout << "Array b1" << std::endl;
   // printNonNestedArray(B1, SIZE);
 
-  // printNestedVector(c);
-  // printNestedArray(C, SIZE);
-  // printArray2d(C2d, SIZE);
+  printNestedVector(c);
+  printNestedArray(C, SIZE);
+  printArray2d(C2d, SIZE);
 
 
   /*
